@@ -1,4 +1,5 @@
 import React from "react";
+import { assets } from '@/assets/assets'
 
 const NewsLetter = () => {
   return (
@@ -16,7 +17,7 @@ const NewsLetter = () => {
           type="text"
           placeholder="Enter your email id"
         />
-        <button className="md:px-12 px-8 h-full text-white bg-orange-600 rounded-md rounded-l-none">
+        <button className="md:px-12 px-8 h-full text-white bg-pink-600 rounded-md rounded-l-none">
           Subscribe
         </button>
       </div>
