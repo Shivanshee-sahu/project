@@ -2,18 +2,43 @@ import { addressDummyData } from "@/assets/assets";
 import { useAppContext } from "@/context/AppContext";
 import React, { useEffect, useState } from "react";
 import { assets } from '@/assets/assets'
-
+import toast from "react-hot-toast";
 const OrderSummary = () => {
 
-  const { currency, router, getCartCount, getCartAmount } = useAppContext()
+  const { currency, router, getCartCount, getCartAmount ,getToken,user,cartItems,setCart} = useAppContext()
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [userAddresses, setUserAddresses] = useState([]);
 
-  const fetchUserAddresses = async () => {
-    setUserAddresses(addressDummyData);
+const fetchUserAddresses = async () => {
+  try {
+    const token = await getToken();
+    const response = await fetch('/api/user/get-address', {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      setUserAddresses(data.addresses);
+      if (data.addresses.length > 0) {
+        setSelectedAddress(data.addresses[0]);
+      } else {
+        toast.error(data.message || "No addresses found");
+      }
+    } else {
+      toast.error(data.message || "Failed to fetch addresses");
+    }
+
+  } catch (error) {
+    toast.error(error.message || "Failed to fetch addresses");
+    console.error("Error fetching addresses:", error);
   }
+}
+
 
   const handleAddressSelect = (address) => {
     setSelectedAddress(address);
@@ -25,8 +50,11 @@ const OrderSummary = () => {
   }
 
   useEffect(() => {
-    fetchUserAddresses();
-  }, [])
+    if(user){
+ fetchUserAddresses();
+    }
+   
+  }, [user])
 
   return (
     <div className="w-full md:w-96 bg-gray-500/5 p-5">

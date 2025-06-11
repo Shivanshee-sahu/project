@@ -8,19 +8,49 @@ import Loading from "@/components/Loading";
 
 const ProductList = () => {
 
-  const { router } = useAppContext()
+  const { router,getToken,user } = useAppContext()
 
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const fetchSellerProduct = async () => {
-    setProducts(productsDummyData)
-    setLoading(false)
+const fetchSellerProduct = async () => {
+  try {
+    const token = await getToken();
+    console.log("Token fetched:", token); // Debugging
+
+    const res = await fetch('/api/product/seller-list', {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      }
+    });
+
+    console.log("API status:", res.status); // Debugging
+
+    const data = await res.json();
+    console.log("Fetched data:", data); // Debugging
+
+    if (data.success) {
+      setProducts(data.products);
+    } else {
+      toast.error(data.message || "Failed to fetch products");
+    }
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    toast.error("An error occurred while fetching products");
+  } finally {
+    console.log("Finished fetchSellerProduct, setting loading to false");
+    setLoading(false);
   }
+};
+
+
 
   useEffect(() => {
+    if(user){
     fetchSellerProduct();
-  }, [])
+    }
+
+  }, [user])
 
   return (
     <div className="flex-1 min-h-screen flex flex-col justify-between">
@@ -44,7 +74,7 @@ const ProductList = () => {
                   <td className="md:px-4 pl-2 md:pl-4 py-3 flex items-center space-x-3 truncate">
                     <div className="bg-gray-500/10 rounded p-2">
                       <Image
-                        src={product.image[0]}
+                        src={product.images[0]}
                         alt="product Image"
                         className="w-16"
                         width={1280}
