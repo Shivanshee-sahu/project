@@ -2,10 +2,7 @@ import { inngest } from "@/config/inngest";
 import Product from "@/models/product";
 import User from "@/models/user";
 import { getAuth } from "@clerk/nextjs/server";
-<<<<<<< HEAD
-import { accessedDynamicData } from "next/dist/server/app-render/dynamic-rendering";
-=======
->>>>>>> e885b9d (error correction)
+
 import { NextResponse } from "next/server";
 
 export async function POST(request){
@@ -44,7 +41,3 @@ export async function POST(request){
     );
   }
 }
-<<<<<<< HEAD
-=======
-
->>>>>>> e885b9d (error correction)
