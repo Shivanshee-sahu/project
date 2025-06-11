@@ -144,6 +144,7 @@ if(user){
        
     }, [user])
 
+
     const value = {
         user,getToken,
         currency, router,
