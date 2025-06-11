@@ -9,8 +9,8 @@ const orderSchema = new mongoose.Schema({
 
   items: [
     {
-       product: { type: mongoose.Schema.Types.ObjectId, ref: "product", required: true },
-
+product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true }
+,
       quantity: {
         type: Number,
         required: true,
@@ -23,11 +23,12 @@ const orderSchema = new mongoose.Schema({
     required: true,
   },
 
-  address: {
-    type:String,
-    ref: "address",                       // ✅ Referencing the Address model
-    required: true,
-  },
+ address: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Address",  // Capitalized to match the model name
+  required: true,
+}
+,
 
   status: {
     type: String,

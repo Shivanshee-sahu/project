@@ -83,8 +83,9 @@ const createOrder = async () => {
     );
 
     if (data.success) {
-      setCartItems({});
       toast.success(data.message);
+            setCartItems({});
+
       router.push("/my-orders");
     } else {
       toast.error(data.message || "Order failed");

@@ -7,41 +7,37 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import Loading from "@/components/Loading";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 const MyOrders = () => {
   const { currency, getToken, user } = useAppContext();
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+const fetchOrders = async () => {
+  try {
+    const token = await getToken();
+    const response = await axios.get('/api/orders/list', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  const fetchOrders = async () => {
-    try {
-      const token = await getToken();
-      const response = await fetch("/api/orders/list", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    const data = response.data;
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setOrders(data.orders.reverse());
-      } else {
-        toast.error(data.message || "Failed to fetch orders");
-      }
-    } catch (error) {
-      console.error("Fetch Orders Error:", error);
-      toast.error(error.message || "Failed to fetch orders");
-    } finally {
-      setLoading(false);
+    if (data.success) {
+      setOrders(data.orders.reverse());
+    } else {
+      toast.error(data.message || "Failed to fetch orders");
     }
-  };
+  } catch (error) {
+    console.error("Order Fetch Error:", error);
+    toast.error(error?.response?.data?.message || "Failed to fetch orders");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     if (user) {
