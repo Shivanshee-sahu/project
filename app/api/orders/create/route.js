@@ -1,7 +1,7 @@
 import { inngest } from "@/config/inngest";
 import Product from "@/models/product";
 import User from "@/models/user";
-import { getAuth } from "@clerk/nextjs/dist/types/server";
+import { getAuth } from "@clerk/nextjs/server";
 import { accessedDynamicData } from "next/dist/server/app-render/dynamic-rendering";
 import { NextResponse } from "next/server";
 
