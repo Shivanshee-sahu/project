@@ -1,47 +1,43 @@
 import { inngest } from "@/config/inngest";
 import Product from "@/models/product";
 import User from "@/models/user";
-import { getAuth } from "@clerk/nextjs/server";
+import { getAuth } from "@clerk/nextjs/dist/types/server";
+import { accessedDynamicData } from "next/dist/server/app-render/dynamic-rendering";
 import { NextResponse } from "next/server";
 
-export async function POST(request) {
+export async function POST(request){
   try {
-    const { userId } = getAuth(request);
-    const { address, items } = await request.json();
-
-    if (!address || !items || items.length === 0) {
-      return NextResponse.json({ success: false, message: "Invalid order data" }, { status: 400 });
+    const {userId}=getAuth(request);
+    const {address,items}=await request.json();
+    if(!address || !items || items.length === 0) {
+      return NextResponse.json(
+        { success: false, message: "Address and items are required" },
+        { status: 400 }
+      );
     }
-
-    let amount = 0;
-
-    for (const item of items) {
-      const product = await Product.findById(item.product);
-      if (!product) {
-        return NextResponse.json({ success: false, message: "Product not found" }, { status: 404 });
-      }
-      amount += product.offerPrice * item.quantity;
-    }
-
+    const amount=await items.reduce(async(acc,item)=>{
+      const product=await Product.findById(item.product);
+      return acc+product.offerPrice*item.quantity;
+    },0)
     await inngest.send({
-      name: "order/created",
-      data: {
+      name:'order/created',
+      data:{
         userId,
         address,
         items,
-        amount: amount + Math.floor(amount * 0.02),
-        date: new Date()
+        amount:amount+Math.floor(amount*0.02), 
+        date:Date.now()
       }
-    });
-
-    const user = await User.findById(userId);
-    user.cartItems = [];
+    })
+    const user=await User.findById(userId);
+    user.cartItems = {};
     await user.save();
-
-    return NextResponse.json({ success: true, message: "Order created successfully" }, { status: 200 });
-
+    return NextResponse.json({ success: true, message: "Order created successfully" }, { status: 201 });
   } catch (error) {
     console.error("Error creating order:", error);
-    return NextResponse.json({ success: false, message: "Failed to create order" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: error.message || "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

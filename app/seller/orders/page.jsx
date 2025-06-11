@@ -5,22 +5,54 @@ import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
 import Footer from "@/components/seller/Footer";
 import Loading from "@/components/Loading";
+import toast from "react-hot-toast";
+
 
 const Orders = () => {
 
-    const { currency } = useAppContext();
+    const { currency,getToken,user } = useAppContext();
 
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const fetchSellerOrders = async () => {
-        setOrders(orderDummyData);
+  const fetchSellerOrders = async () => {
+    try {
+        const token = await getToken();
+        const response = await fetch('/api/orders/seller-orders', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        // Check if the response is OK before parsing
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            setOrders(data.orders);
+        } else {
+            toast.error(data.message || "Failed to fetch orders");
+        }
+
+    } catch (error) {
+        console.error(error);
+        toast.error(error.message || "Failed to fetch orders");
+    } finally {
         setLoading(false);
     }
+}
+
 
     useEffect(() => {
-        fetchSellerOrders();
-    }, []);
+        if(user){
+            fetchSellerOrders();
+        }
+       
+    }, [user]);
 
     return (
         <div className="flex-1 h-screen overflow-scroll flex flex-col justify-between text-sm">

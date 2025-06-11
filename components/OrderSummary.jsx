@@ -3,9 +3,10 @@ import { useAppContext } from "@/context/AppContext";
 import React, { useEffect, useState } from "react";
 import { assets } from '@/assets/assets'
 import toast from "react-hot-toast";
+import axios from "axios";
 const OrderSummary = () => {
 
-  const { currency, router, getCartCount, getCartAmount ,getToken,user,cartItems,setCart} = useAppContext()
+const { currency, router, getCartCount, getCartAmount ,getToken,user,cartItems,setCartItems } = useAppContext()
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -19,6 +20,11 @@ const fetchUserAddresses = async () => {
         "Authorization": `Bearer ${token}`
       }
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
 
     const data = await response.json();
 
@@ -40,14 +46,55 @@ const fetchUserAddresses = async () => {
 }
 
 
+
   const handleAddressSelect = (address) => {
     setSelectedAddress(address);
     setIsDropdownOpen(false);
   };
+const createOrder = async () => {
+  try {
+    if (!selectedAddress) {
+      return toast.error("Please select an address");
+    }
 
-  const createOrder = async () => {
+    let cartItemsArray = Object.keys(cartItems).map((key) => ({
+      product: key,
+      quantity: cartItems[key],
+    }));
 
+    cartItemsArray = cartItemsArray.filter((item) => item.quantity > 0);
+    if (cartItemsArray.length === 0) {
+      return toast.error("Your cart is empty");
+    }
+
+    const token = await getToken();
+
+    const { data } = await axios.post(
+      "/api/orders/create",
+      {
+        address: selectedAddress._id,
+        items: cartItemsArray,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (data.success) {
+      setCartItems({});
+      toast.success(data.message);
+      router.push("/my-orders");
+    } else {
+      toast.error(data.message || "Order failed");
+    }
+  } catch (error) {
+    console.error("Error creating order:", error);
+    toast.error("An error occurred while placing the order");
   }
+};
+
 
   useEffect(() => {
     if(user){
